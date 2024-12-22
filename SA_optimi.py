@@ -1,13 +1,11 @@
 import random
 import math
-import numpy as np
 
-N, K = map(int, input().split())
-d = list(map(int, input().split()))
+N, K = map(int, input().split()) 
+d = list(map(int, input().split())) 
 t = [list(map(int, input().split())) for _ in range(N + 1)]
-
 # Simulated Annealing parameters
-max_iter = 2000
+max_iter = 5000
 init_temp = 200
 alpha = 0.99
 
@@ -33,15 +31,20 @@ def savings_initial_solution():
             if i != j:
                 savings.append((t[0][i] + t[j][0] - t[i][j], i, j))
     savings.sort(reverse=True)
-
     routes = {i: [i] for i in customers}
+    merged = set() #them set de kiem tra da merge hay chua
     for _, i, j in savings:
-        if i in routes and j in routes and routes[i] != routes[j]:
-            if len(routes[i]) + len(routes[j]) <= N // K:
+        if i in routes and j in routes and routes[i] != routes[j] and i not in merged and j not in merged: #kiem tra ca 2 da merge hay chua
+            if len(routes[i]) + len(routes[j]) <= math.ceil(N / K): #sua dieu kien can bang tai #another ver N//K + 1
                 routes[i].extend(routes[j])
-                del routes[j]
-
-    return list(routes.values())[:K] + [[] for _ in range(K - len(routes))]
+                merged.add(j) #them j vao set merged
+    final_routes = []
+    for i in routes:
+      if i not in merged:
+        final_routes.append(routes[i])
+    while len(final_routes) < K:
+        final_routes.append([])
+    return final_routes
 
 # Perturb solution
 def perturb_solution(routes):
@@ -61,6 +64,7 @@ def perturb_solution(routes):
 
 # Initialize
 current_solution = savings_initial_solution()
+# print(current_solution)
 current_cost = calculate_working_time(current_solution)
 best_solution = current_solution
 best_cost = current_cost
